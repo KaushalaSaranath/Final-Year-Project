@@ -1,25 +1,34 @@
 import 'dart:io';
-import 'package:dio/dio.dart';
+import 'package:http/http.dart' as http;
+import 'package:path/path.dart';
+import 'package:mime/mime.dart';
+import 'dart:convert';
+import 'package:http_parser/http_parser.dart'; // Import this for MediaType
 
 class ApiService {
-  static const String _baseUrl =
-      "http://127.0.0.1:5000"; // Replace with actual server IP
+  static const String _baseUrl = "http://172.27.42.180:3000"; // Replace with actual server IP
 
   static Future<String> uploadImage(File imageFile) async {
     try {
-      String fileName = imageFile.path.split('/').last;
+      String fileName = basename(imageFile.path);
+      String? mimeType = lookupMimeType(imageFile.path);
 
-      FormData formData = FormData.fromMap({
-        "file":
-            await MultipartFile.fromFile(imageFile.path, filename: fileName),
-      });
+      var request = http.MultipartRequest("POST", Uri.parse("$_baseUrl/predict"));
+      request.files.add(await http.MultipartFile.fromPath(
+        'file',
+        imageFile.path,
+        filename: fileName,
+        contentType: mimeType != null ? MediaType.parse(mimeType) : null,
+      ));
 
-      Response response = await Dio().post("$_baseUrl/predict", data: formData);
+      var response = await request.send();
+      var responseBody = await response.stream.bytesToString();
 
       if (response.statusCode == 200) {
-        return "Infection: ${response.data['predicted_class']} \nConfidence: ${response.data['confidence']}%";
+        var jsonResponse = json.decode(responseBody);
+        return "Infection: ${jsonResponse['predicted_class']} \nConfidence: ${jsonResponse['confidence']}%";
       } else {
-        return "Error: ${response.statusMessage}";
+        return "Error: ${response.reasonPhrase}";
       }
     } catch (e) {
       return "Failed to upload image: $e";
