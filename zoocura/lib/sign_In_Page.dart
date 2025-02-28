@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:zoocura/image_picker_screen.dart';
+import 'package:zoocura/main.dart';
 
 import 'sign_Up_Page.dart';
 
@@ -15,7 +17,10 @@ class SignInPage extends StatelessWidget {
           children: [
             Text(
               'Sign In',
-              style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.black),
+              style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black),
               textAlign: TextAlign.center,
             ),
             SizedBox(height: 40),
@@ -41,7 +46,12 @@ class SignInPage extends StatelessWidget {
                 backgroundColor: Colors.yellow,
                 padding: EdgeInsets.symmetric(vertical: 15),
               ),
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ImagePickerScreen()),
+                );
+              },
               child: Text(
                 'Sign In',
                 style: TextStyle(color: Colors.black, fontSize: 18),
