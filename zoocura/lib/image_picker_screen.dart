@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:zoocura/result_screen.dart';
 import './services/api_service.dart';
 
 class ImagePickerScreen extends StatefulWidget {
@@ -12,34 +13,21 @@ class ImagePickerScreen extends StatefulWidget {
 
 class _ImagePickerScreenState extends State<ImagePickerScreen> {
   File? _image;
-  bool _isLoading = false;
-  String? _prediction;
-
   final ImagePicker _picker = ImagePicker();
 
-  // Pick Image from Gallery or Camera
   Future<void> _pickImage(ImageSource source) async {
     final pickedFile = await _picker.pickImage(source: source);
     if (pickedFile != null) {
-      setState(() {
-        _image = File(pickedFile.path);
-        _prediction = null; // Reset previous results
-      });
+      setState(() => _image = File(pickedFile.path));
+      _navigateToLoadingScreen();
     }
   }
 
-  // Upload Image & Get Prediction
-  Future<void> _uploadImage() async {
-    if (_image == null) return;
-
-    setState(() => _isLoading = true);
-
-    final result = await ApiService.uploadImage(_image!);
-    
-    setState(() {
-      _isLoading = false;
-      _prediction = result;
-    });
+  void _navigateToLoadingScreen() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => LoadingScreen(image: _image!)),
+    );
   }
 
   @override
@@ -47,44 +35,104 @@ class _ImagePickerScreenState extends State<ImagePickerScreen> {
     return Scaffold(
       appBar: AppBar(title: Text("Zoocura - Skin Infection Detector")),
       body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          _image == null
-              ? Icon(Icons.image, size: 100, color: Colors.grey)
-              : Image.file(_image!, height: 200),
-          SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ElevatedButton.icon(
-                icon: Icon(Icons.photo_library),
-                label: Text("Gallery"),
-                onPressed: () => _pickImage(ImageSource.gallery),
+          Expanded(
+            child: GridView.builder(
+              padding: EdgeInsets.all(10),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
               ),
-              SizedBox(width: 10),
-              ElevatedButton.icon(
-                icon: Icon(Icons.camera_alt),
-                label: Text("Camera"),
-                onPressed: () => _pickImage(ImageSource.camera),
-              ),
-            ],
+              itemCount: 6,
+              itemBuilder: (context, index) {
+                // List of asset images to show in the grid
+                final assetImages = [
+                  'assets/1.jpg',
+                  'assets/2.jpg',
+                  'assets/3.jpg',
+                  'assets/4.jpg',
+                  'assets/5.jpg',
+                  'assets/6.jpg',
+                ];
+
+                return GestureDetector(
+                  onTap: () {
+                    // Placeholder for future functionality
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Image.asset(
+                        assetImages[index],  // Use image from the asset list
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
           ),
-          SizedBox(height: 20),
-          _isLoading
-              ? CircularProgressIndicator()
-              : ElevatedButton(
-                  onPressed: _uploadImage,
-                  child: Text("Upload & Predict"),
+          Padding(
+            padding: EdgeInsets.all(20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  icon: Icon(Icons.photo_library, size: 40),
+                  onPressed: () => _pickImage(ImageSource.gallery),
                 ),
-          SizedBox(height: 20),
-          _prediction != null
-              ? Text(
-                  "Prediction: $_prediction",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                )
-              : SizedBox.shrink(),
+                SizedBox(width: 30),
+                IconButton(
+                  icon: Icon(Icons.camera_alt, size: 40),
+                  onPressed: () => _pickImage(ImageSource.camera),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
+    );
+  }
+}
+
+class LoadingScreen extends StatefulWidget {
+  final File image;
+  const LoadingScreen({super.key, required this.image});
+
+  @override
+  _LoadingScreenState createState() => _LoadingScreenState();
+}
+
+class _LoadingScreenState extends State<LoadingScreen> {
+  String? _prediction;
+
+  @override
+  void initState() {
+    super.initState();
+    _processImage();
+  }
+
+  Future<void> _processImage() async {
+    final result = await ApiService.uploadImage(widget.image);
+    
+    setState(() => _prediction = result);
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ResultScreen(image: widget.image, prediction: _prediction!),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(child: CircularProgressIndicator()),
     );
   }
 }

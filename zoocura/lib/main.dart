@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:zoocura/image_picker_screen.dart';
+//import 'package:zoocura/image_picker_screen.dart';
 import 'package:zoocura/sign_In_Page.dart';
 
 void main() {
