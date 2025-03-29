@@ -2,7 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:zoocura/image_picker_screen.dart';
 import 'sign_Up_Page.dart';
 
-class SignInPage extends StatelessWidget {
+class SignInPage extends StatefulWidget {
+  @override
+  _SignInPageState createState() => _SignInPageState();
+}
+
+class _SignInPageState extends State<SignInPage> {
+  // State to control password visibility
+  bool _isPasswordVisible = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -35,23 +43,72 @@ class SignInPage extends StatelessWidget {
                 TextField(
                   decoration: InputDecoration(
                     filled: true,
-                    fillColor: const Color.fromARGB(255, 134, 109, 147)
+                    fillColor: const Color.fromARGB(255, 255, 255, 255)
                         .withOpacity(0.8),
                     hintText: 'Email',
                     hintStyle: TextStyle(color: Colors.black),
-                    border: OutlineInputBorder(),
+                    border: OutlineInputBorder(
+                      borderRadius:
+                          BorderRadius.circular(15), // Corrected placement
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius:
+                          BorderRadius.circular(15), // Ensures rounded corners
+                      borderSide: BorderSide(
+                          color:
+                              Colors.grey), // Optional: Customize border color
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(
+                          15), // Keeps it consistent when focused
+                      borderSide: BorderSide(
+                          color: Colors.purple,
+                          width: 2), // Optional: Highlight on focus
+                    ),
                   ),
                 ),
                 SizedBox(height: 20),
+                // Password Field with eye visibility toggle
                 TextField(
-                  obscureText: true,
+                  obscureText: !_isPasswordVisible, // Toggle visibility
                   decoration: InputDecoration(
                     filled: true,
-                    fillColor: const Color.fromARGB(255, 134, 109, 147)
+                    fillColor: const Color.fromARGB(255, 255, 255, 255)
                         .withOpacity(0.8),
                     hintText: 'Password',
                     hintStyle: TextStyle(color: Colors.black),
-                    border: OutlineInputBorder(),
+                    border: OutlineInputBorder(
+                      borderRadius:
+                          BorderRadius.circular(15), // Corrected placement
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius:
+                          BorderRadius.circular(15), // Ensures rounded corners
+                      borderSide: BorderSide(
+                          color:
+                              Colors.grey), // Optional: Customize border color
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(
+                          15), // Keeps it consistent when focused
+                      borderSide: BorderSide(
+                          color: Colors.purple,
+                          width: 2), // Optional: Highlight on focus
+                    ),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _isPasswordVisible
+                            ? Icons.visibility
+                            : Icons.visibility_off,
+                        color: Colors.black,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _isPasswordVisible =
+                              !_isPasswordVisible; // Toggle password visibility
+                        });
+                      },
+                    ),
                   ),
                 ),
                 SizedBox(height: 20),
