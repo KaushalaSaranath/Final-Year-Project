@@ -6,8 +6,7 @@ import 'dart:convert';
 import 'package:http_parser/http_parser.dart'; // Import MediaType
 
 class ApiService {
-  static const String _baseUrl =
-      "http://192.168.8.105:3000"; //server IP
+  static const String _baseUrl = "http://192.168.8.105:3000"; //server IP
 
   static Future<String> uploadImage(File imageFile) async {
     try {
@@ -28,7 +27,7 @@ class ApiService {
 
       if (response.statusCode == 200) {
         var jsonResponse = json.decode(responseBody);
-        return "Infection: ${jsonResponse['predicted_class']} \nConfidence: ${jsonResponse['confidence']}%";
+        return "Infection: ${jsonResponse['predicted_class']} \nConfidence: ${double.parse(jsonResponse['confidence'].toString()).toStringAsFixed(2)}%";
       } else {
         return "Error: ${response.reasonPhrase}";
       }
