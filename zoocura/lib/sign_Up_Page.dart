@@ -1,6 +1,27 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:zoocura/image_picker_screen.dart';
 
 class SignUpPage extends StatelessWidget {
+  Future<User?> registerUser(
+      String email, String password, BuildContext context) async {
+    try {
+      UserCredential userCredential =
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => ImagePickerScreen()),
+      );
+      return userCredential.user;
+    } catch (e) {
+      print('Signup Failed: $e');
+      return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -68,7 +89,9 @@ class SignUpPage extends StatelessWidget {
                     backgroundColor: Colors.purple,
                     padding: EdgeInsets.symmetric(vertical: 15),
                   ),
-                  onPressed: () {},
+                  onPressed: () {
+                    registerUser("kaushala@gmail.com", "Saranath", context);
+                  },
                   child: Text(
                     'Sign Up',
                     style: TextStyle(color: Colors.black, fontSize: 18),

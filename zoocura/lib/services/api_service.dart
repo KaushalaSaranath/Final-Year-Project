@@ -6,7 +6,7 @@ import 'dart:convert';
 import 'package:http_parser/http_parser.dart'; // Import MediaType
 
 class ApiService {
-  static const String _baseUrl = "http://192.168.8.105:3000"; //server IP
+  static const String _baseUrl = "http://172.27.5.240:3000"; //server IP
 
   static Future<String> uploadImage(File imageFile) async {
     try {

@@ -37,6 +37,11 @@ dependencies:
   image_picker: ^1.0.7  # Latest version (check for updates)
   dio: ^5.3.3  # HTTP client for sending images
   flutter_staggered_grid_view: ^0.7.0
+  firebase_auth: ^5.5.2
+  firebase_core: ^3.13.0
+  firebase_storage: ^12.4.5
+  uuid: ^4.5.1
+  cloud_firestore: ^5.6.6
 
 
 dev_dependencies:

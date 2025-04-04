@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "627761788178",
+    "project_id": "log-in-3a604",
+    "storage_bucket": "log-in-3a604.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:627761788178:android:3e3afb378602f63eb92fcb",
+        "android_client_info": {
+          "package_name": "com.example.zoocura"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDl1MfaiK_4skCH6WxemOE50Rq-JtrNFsU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

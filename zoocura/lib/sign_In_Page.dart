@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:zoocura/image_picker_screen.dart';
 import 'sign_Up_Page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class SignInPage extends StatefulWidget {
   @override
@@ -10,6 +11,25 @@ class SignInPage extends StatefulWidget {
 class _SignInPageState extends State<SignInPage> {
   // State to control password visibility
   bool _isPasswordVisible = false;
+
+  Future<User?> loginUser(
+      String email, String password, BuildContext context) async {
+    try {
+      UserCredential userCredential =
+          await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => ImagePickerScreen()),
+      );
+      return userCredential.user;
+    } catch (e) {
+      print('Login Failed: $e');
+      return null;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -118,11 +138,7 @@ class _SignInPageState extends State<SignInPage> {
                     padding: EdgeInsets.symmetric(vertical: 15),
                   ),
                   onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => ImagePickerScreen()),
-                    );
+                    loginUser("kaushala@gmail.com", "Saranath", context);
                   },
                   child: Text(
                     'Sign In',
@@ -142,17 +158,6 @@ class _SignInPageState extends State<SignInPage> {
                   ),
                 ),
               ],
-            ),
-          ),
-          // Bottom Image
-          Positioned(
-            bottom: 20,
-            left: 0,
-            right: 0,
-            child: Image.asset(
-              'assets/sign in.png',
-              height: 250,
-              fit: BoxFit.contain,
             ),
           ),
         ],
