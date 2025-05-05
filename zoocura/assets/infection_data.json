@@ -1,0 +1,28 @@
+{
+    "dermatitis": {
+      "reason": "Dermatitis is an inflammation of the skin that can result from allergies, irritants, or infections. It often appears as red, itchy, or flaky skin.",
+      "solution": "Keep the area clean and dry. Use anti-inflammatory creams or medicated shampoos. Consult a vet or doctor for severe cases."
+    },
+    "flea_allergy": {
+      "reason": "Flea Allergy Dermatitis is a skin reaction caused by an allergy to flea saliva. It leads to excessive itching, redness, and hair loss.",
+      "solution": "Use flea prevention treatments regularly. Treat the environment for fleas. Consult a vet for allergy medications if needed."
+    },
+    "ringworm": {
+      "reason": "Ringworm is a fungal infection that causes circular bald patches, redness, and sometimes scaling or crusting of the skin.",
+      "solution": "Apply antifungal creams or shampoos as prescribed. Disinfect bedding and grooming tools. Limit contact to prevent spreading."
+    },
+    "scabies": {
+      "reason": "Scabies is a contagious skin condition caused by tiny mites that burrow under the skin, leading to intense itching and a rash.",
+      "solution": "Use prescribed topical or oral medications to kill the mites. Wash all bedding and clothing in hot water. Avoid close contact until treated."
+    },
+    "healthy": {
+      "reason": "The scanned skin appears to be healthy, with no signs of infection or abnormality detected.",
+      "solution": "Continue regular grooming, hygiene, and check-ups. Maintain a healthy diet and environment for overall well-being."
+    },
+    "zoonotic_risks": {
+      "reason": "The uploaded image does not appear to be related to a skin condition or may not be clear enough for diagnosis.",
+      "solution": "Please try capturing a clearer image focused on the affected skin area, or consult a professional for an accurate evaluation."
+    }
+}
+  
+  

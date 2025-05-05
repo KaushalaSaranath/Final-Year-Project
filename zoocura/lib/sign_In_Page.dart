@@ -1,166 +1,173 @@
-import 'package:flutter/material.dart';
-import 'package:zoocura/image_picker_screen.dart';
-import 'sign_Up_Page.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+// Name : K.M.T.Kaushala Saranath
+// Student Number : w1870583 | 20200556
+// Module : (2024) 6COSC023C.Y
+// Project : Zoocura - Skin Infection Detector
 
+import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:zoocura/image_picker_screen.dart';
+import 'sign_up_page.dart';
+
+/// A StatefulWidget for user login with email and password.
 class SignInPage extends StatefulWidget {
   @override
   _SignInPageState createState() => _SignInPageState();
 }
 
 class _SignInPageState extends State<SignInPage> {
-  // State to control password visibility
+  // Controllers to capture user input
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
+  // Toggle for showing/hiding password
   bool _isPasswordVisible = false;
 
-  Future<User?> loginUser(
-      String email, String password, BuildContext context) async {
+  // Show loading indicator during login process
+  bool _isLoading = false;
+
+  /// Attempts to log in the user using Firebase Authentication
+  Future<void> loginUser() async {
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+
+    // Check for empty input
+    if (email.isEmpty || password.isEmpty) {
+      _showSnackbar("Please enter email and password.");
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
     try {
-      UserCredential userCredential =
-          await FirebaseAuth.instance.signInWithEmailAndPassword(
+      // Firebase Auth sign-in
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
-      Navigator.push(
+
+      // On success, navigate to Image Picker screen
+      Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => ImagePickerScreen()),
+        MaterialPageRoute(builder: (_) => ImagePickerScreen()),
       );
-      return userCredential.user;
     } catch (e) {
-      print('Login Failed: $e');
-      return null;
+      // Handle login failure
+      _showSnackbar("Login failed. Try Again");
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
+  /// Display a snackbar with an error or info message
+  void _showSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
+  /// UI build method
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         children: [
-          // Background Image
+          // Background image
           Positioned.fill(
-            child: Image.asset(
-              'assets/paw_prints.png',
-              fit: BoxFit.cover,
-            ),
+            child: Image.asset('assets/paw_prints.png', fit: BoxFit.cover),
           ),
+
+          // Show progress indicator during loading
+          if (_isLoading) Center(child: CircularProgressIndicator()),
+
+          // Login form
           Padding(
             padding: const EdgeInsets.all(20.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  'Sign In',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: const Color.fromARGB(
-                        255, 0, 0, 0), // Ensure contrast with background
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(height: 40),
-                TextField(
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: const Color.fromARGB(255, 255, 255, 255)
-                        .withOpacity(0.8),
-                    hintText: 'Email',
-                    hintStyle: TextStyle(color: Colors.black),
-                    border: OutlineInputBorder(
-                      borderRadius:
-                          BorderRadius.circular(15), // Corrected placement
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius:
-                          BorderRadius.circular(15), // Ensures rounded corners
-                      borderSide: BorderSide(
-                          color:
-                              Colors.grey), // Optional: Customize border color
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(
-                          15), // Keeps it consistent when focused
-                      borderSide: BorderSide(
-                          color: Colors.purple,
-                          width: 2), // Optional: Highlight on focus
-                    ),
-                  ),
-                ),
-                SizedBox(height: 20),
-                // Password Field with eye visibility toggle
-                TextField(
-                  obscureText: !_isPasswordVisible, // Toggle visibility
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: const Color.fromARGB(255, 255, 255, 255)
-                        .withOpacity(0.8),
-                    hintText: 'Password',
-                    hintStyle: TextStyle(color: Colors.black),
-                    border: OutlineInputBorder(
-                      borderRadius:
-                          BorderRadius.circular(15), // Corrected placement
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius:
-                          BorderRadius.circular(15), // Ensures rounded corners
-                      borderSide: BorderSide(
-                          color:
-                              Colors.grey), // Optional: Customize border color
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(
-                          15), // Keeps it consistent when focused
-                      borderSide: BorderSide(
-                          color: Colors.purple,
-                          width: 2), // Optional: Highlight on focus
-                    ),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _isPasswordVisible
-                            ? Icons.visibility
-                            : Icons.visibility_off,
-                        color: Colors.black,
+            child: Center(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    Text('Welcome Back!',
+                        style: TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        )),
+                    SizedBox(height: 40),
+
+                    // Email input
+                    _buildTextField(emailController, 'Email'),
+                    SizedBox(height: 20),
+
+                    // Password input with visibility toggle
+                    _buildPasswordField(passwordController, 'Password'),
+                    SizedBox(height: 20),
+
+                    // Sign In button
+                    ElevatedButton(
+                      onPressed: loginUser,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.purple,
+                        padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                       ),
-                      onPressed: () {
-                        setState(() {
-                          _isPasswordVisible =
-                              !_isPasswordVisible; // Toggle password visibility
-                        });
-                      },
+                      child: Text(' Sign In ',
+                          style: TextStyle(color: Colors.white, fontSize: 18)),
                     ),
-                  ),
+
+                    // Redirect to Sign Up page
+                    TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => SignUpPage()),
+                        );
+                      },
+                      child: Text("Don't have an account? Sign Up",
+                          style: TextStyle(color: Colors.black)),
+                    )
+                  ],
                 ),
-                SizedBox(height: 20),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.purple,
-                    padding: EdgeInsets.symmetric(vertical: 15),
-                  ),
-                  onPressed: () {
-                    loginUser("kaushala@gmail.com", "Saranath", context);
-                  },
-                  child: Text(
-                    'Sign In',
-                    style: TextStyle(color: Colors.white, fontSize: 18),
-                  ),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => SignUpPage()),
-                    );
-                  },
-                  child: Text(
-                    "Don't have an account? Sign Up",
-                    style: TextStyle(color: const Color.fromARGB(255, 0, 0, 0)),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  /// Builds a styled text field for input (used for email)
+  Widget _buildTextField(TextEditingController controller, String hint) {
+    return TextField(
+      controller: controller,
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: Colors.white.withOpacity(0.8),
+        hintText: hint,
+        hintStyle: TextStyle(color: Colors.black),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
+      ),
+    );
+  }
+
+  /// Builds a password field with visibility toggle
+  Widget _buildPasswordField(TextEditingController controller, String hint) {
+    return TextField(
+      controller: controller,
+      obscureText: !_isPasswordVisible,
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: Colors.white.withOpacity(0.8),
+        hintText: hint,
+        hintStyle: TextStyle(color: Colors.black),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
+        suffixIcon: IconButton(
+          icon: Icon(
+              _isPasswordVisible ? Icons.visibility : Icons.visibility_off),
+          onPressed: () {
+            setState(() {
+              _isPasswordVisible = !_isPasswordVisible;
+            });
+          },
+        ),
       ),
     );
   }

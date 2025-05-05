@@ -1,162 +1,20 @@
-// import 'dart:io';
-// import 'package:flutter/material.dart';
-// import 'package:image_picker/image_picker.dart';
-// import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-// import 'package:zoocura/result_screen.dart';
-// import './services/api_service.dart';
+// Name : K.M.T.Kaushala Saranath
+// Student Number : w1870583 | 20200556
+// Module : (2024) 6COSC023C.Y
+// Project : Zoocura - Skin Infection Detector
 
-// class ImagePickerScreen extends StatefulWidget {
-//   const ImagePickerScreen({super.key});
-
-//   @override
-//   _ImagePickerScreenState createState() => _ImagePickerScreenState();
-// }
-
-// class _ImagePickerScreenState extends State<ImagePickerScreen> {
-//   File? _image;
-//   final ImagePicker _picker = ImagePicker();
-
-//   Future<void> _pickImage(ImageSource source) async {
-//     final pickedFile = await _picker.pickImage(source: source);
-//     if (pickedFile != null) {
-//       setState(() => _image = File(pickedFile.path));
-//       _navigateToLoadingScreen();
-//     }
-//   }
-
-//   void _navigateToLoadingScreen() {
-//     Navigator.push(
-//       context,
-//       MaterialPageRoute(builder: (context) => LoadingScreen(image: _image!)),
-//     );
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         automaticallyImplyLeading: false,
-//         title: Text('Zoocura - Skin Infection Detector'),
-//         backgroundColor: Colors.purple,
-//       ),
-//       body: Column(
-//         children: [
-//           /// The Staggered Grid should be scrollable
-//           Expanded(
-//             child: Padding(
-//               padding: const EdgeInsets.all(10),
-//               child: SingleChildScrollView(
-//                 child: StaggeredGrid.count(
-//                   crossAxisCount: 2,
-//                   mainAxisSpacing: 10,
-//                   crossAxisSpacing: 10,
-//                   children: List.generate(6, (index) {
-//                     final assetImages = [
-//                       'assets/1.jpg',
-//                       'assets/2.jpg',
-//                       'assets/3.jpg',
-//                       'assets/4.jpg',
-//                       'assets/5.jpg',
-//                       'assets/6.jpg',
-//                     ];
-//                     return StaggeredGridTile.fit(
-//                       crossAxisCellCount: index % 3 == 0 ? 2 : 1,
-//                       child: GestureDetector(
-//                         onTap: () {
-//                           // Placeholder for future functionality
-//                         },
-//                         child: Container(
-//                           decoration: BoxDecoration(
-//                             color: Colors.grey[300],
-//                             borderRadius: BorderRadius.circular(10),
-//                           ),
-//                           child: ClipRRect(
-//                             borderRadius: BorderRadius.circular(10),
-//                             child: Image.asset(
-//                               assetImages[index],
-//                               fit: BoxFit.cover,
-//                             ),
-//                           ),
-//                         ),
-//                       ),
-//                     );
-//                   }),
-//                 ),
-//               ),
-//             ),
-//           ),
-
-//           /// Bottom Buttons (Fixed, Not Scrollable)
-//           Padding(
-//             padding: EdgeInsets.all(10),
-//             child: Row(
-//               mainAxisAlignment: MainAxisAlignment.center,
-//               children: [
-//                 IconButton(
-//                   icon: Icon(Icons.photo_library, size: 40),
-//                   onPressed: () => _pickImage(ImageSource.gallery),
-//                 ),
-//                 SizedBox(width: 30),
-//                 IconButton(
-//                   icon: Icon(Icons.camera_alt, size: 40),
-//                   onPressed: () => _pickImage(ImageSource.camera),
-//                 ),
-//               ],
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }
-
-// class LoadingScreen extends StatefulWidget {
-//   final File image;
-//   const LoadingScreen({super.key, required this.image});
-
-//   @override
-//   _LoadingScreenState createState() => _LoadingScreenState();
-// }
-
-// class _LoadingScreenState extends State<LoadingScreen> {
-//   String? _prediction;
-
-//   @override
-//   void initState() {
-//     super.initState();
-//     _processImage();
-//   }
-
-//   Future<void> _processImage() async {
-//     final result = await ApiService.uploadImage(widget.image);
-
-//     setState(() => _prediction = result);
-//     Navigator.pushReplacement(
-//       context,
-//       MaterialPageRoute(
-//         builder: (context) =>
-//             ResultScreen(image: widget.image, prediction: _prediction!),
-//       ),
-//     );
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       body: Center(child: CircularProgressIndicator()),
-//     );
-//   }
-// }
-
+// Import packages and dependencies
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:firebase_storage/firebase_storage.dart';  // Add Firebase Storage
-import 'package:firebase_core/firebase_core.dart';
-import 'package:uuid/uuid.dart';  // Firebase Core for initialization
+import 'package:zoocura/loading_screen.dart';
+import 'package:zoocura/models/prediction_result.dart';
+import 'package:zoocura/settings_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-
+// This screen allows users to pick an image (from gallery or camera),
+// sends it for prediction, and displays past predictions.
 class ImagePickerScreen extends StatefulWidget {
   const ImagePickerScreen({super.key});
 
@@ -165,118 +23,139 @@ class ImagePickerScreen extends StatefulWidget {
 }
 
 class _ImagePickerScreenState extends State<ImagePickerScreen> {
-  File? _image;
-  final ImagePicker _picker = ImagePicker();
+  File? _image; // Holds the selected image file
+  final ImagePicker _picker = ImagePicker(); // Image picker instance
+  List<PredictionResult> _predictions = []; // List of previous predictions
+  bool _isLoading = true; // Flag to show loading indicator while fetching data
 
+  @override
+  void initState() {
+    super.initState();
+    _loadPredictions(); // Fetch previous predictions when the screen loads
+  }
+
+  // Loads prediction history from Firestore for the logged-in user
+  Future<void> _loadPredictions() async {
+    try {
+      final String? userId = FirebaseAuth.instance.currentUser?.uid;
+
+      // If user is not signed in, do nothing
+      if (userId == null) {
+        print("User not signed in");
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      // Access the Firestore collection: user_images/{userId}/predictions
+      CollectionReference predictionsRef = FirebaseFirestore.instance
+          .collection('user_images')
+          .doc(userId)
+          .collection('predictions');
+
+      // Retrieve prediction documents
+      QuerySnapshot snapshot = await predictionsRef.get();
+
+      // Convert documents into PredictionResult objects
+      List<PredictionResult> results = snapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        return PredictionResult.fromJson(data);
+      }).toList();
+
+      // Update state with fetched predictions
+      setState(() {
+        _predictions = results;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print("Error fetching predictions: $e");
+      setState(() => _isLoading = false);
+    }
+  }
+
+  // Opens image picker (camera or gallery) and navigates to loading screen
   Future<void> _pickImage(ImageSource source) async {
     final pickedFile = await _picker.pickImage(source: source);
     if (pickedFile != null) {
       setState(() => _image = File(pickedFile.path));
-      _uploadImageToFirebase();  // Upload image to Firebase
+      _navigateToLoadingScreen(); // Send image for prediction
     }
   }
 
-  // Upload image to Firebase Storage and save URL to Firestore
-  Future<void> _uploadImageToFirebase() async {
-    if (_image == null) return;
-
-    try {
-      // Generate a unique file name using UUID
-      String fileName = Uuid().v4() + '.jpg';
-      FirebaseStorage storage = FirebaseStorage.instance;
-      Reference ref = storage.ref().child("user_images/$fileName");
-
-      // Upload the file to Firebase Storage
-      UploadTask uploadTask = ref.putFile(_image!);
-
-      // Wait for upload to complete and get the download URL
-      await uploadTask.whenComplete(() async {
-        String downloadURL = await ref.getDownloadURL();
-        print("Image URL: $downloadURL");
-
-        // Store the download URL in Firestore
-        await _saveImageUrlToFirestore(downloadURL);
-
-        // Navigate to the next screen
-        _navigateToLoadingScreen(downloadURL);
-      });
-    } catch (e) {
-      print("Error uploading image: $e");
-    }
-  }
-
-  // Save the download URL to Firestore
-  Future<void> _saveImageUrlToFirestore(String downloadURL) async {
-    try {
-      // Add the URL to Firestore
-      CollectionReference images = FirebaseFirestore.instance.collection('user_images');
-      await images.add({
-        'image_url': downloadURL,
-        'timestamp': FieldValue.serverTimestamp(),
-      });
-      print("Image URL saved to Firestore");
-    } catch (e) {
-      print("Error saving image URL to Firestore: $e");
-    }
-  }
-
-  // Navigate to the next screen
-  void _navigateToLoadingScreen(String downloadURL) {
+  // Navigates to the loading screen to start prediction process
+  void _navigateToLoadingScreen() {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => LoadingScreen(imageUrl: downloadURL),
-      ),
-    );
+      MaterialPageRoute(builder: (context) => LoadingScreen(image: _image!)),
+    ).then((_) => _loadPredictions()); // Refresh prediction history on return
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // App bar with title and settings icon
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: Text('Zoocura - Skin Infection Detector'),
         backgroundColor: Colors.purple,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.settings),
+            onPressed: () {
+              // Navigate to settings page
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => SettingsPage()),
+              );
+            },
+          ),
+        ],
       ),
       body: Column(
         children: [
-          /// Display Images from Firestore
+          /// Section: Display Prediction History
           Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('user_images')
-                  .orderBy('timestamp', descending: true)
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return Center(child: CircularProgressIndicator());
-                }
-
-                var images = snapshot.data!.docs;
-                return ListView.builder(
-                  itemCount: images.length,
-                  itemBuilder: (context, index) {
-                    var imageUrl = images[index]['image_url'];
-                    return Card(
-                      child: Image.network(imageUrl),
-                    );
-                  },
-                );
-              },
-            ),
+            child: _isLoading
+                ? Center(child: CircularProgressIndicator()) // Show loading spinner
+                : _predictions.isEmpty
+                    ? Center(child: Text("No prediction history found."))
+                    : ListView.builder(
+                        itemCount: _predictions.length,
+                        itemBuilder: (context, index) {
+                          final prediction = _predictions[index];
+                          return Card(
+                            margin: EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 6),
+                            child: ListTile(
+                              leading: Image.network(
+                                prediction.imageUrl,
+                                width: 60,
+                                height: 60,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    Icon(Icons.broken_image),
+                              ),
+                              title: Text(prediction.predictedClass),
+                              subtitle: Text(
+                                  'Confidence: ${prediction.confidence.toStringAsFixed(2)}%'),
+                            ),
+                          );
+                        },
+                      ),
           ),
 
-          /// Bottom Buttons (Fixed, Not Scrollable)
+          /// Section: Image Picker Buttons
           Padding(
             padding: EdgeInsets.all(10),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                // Button to select image from gallery
                 IconButton(
                   icon: Icon(Icons.photo_library, size: 40),
                   onPressed: () => _pickImage(ImageSource.gallery),
                 ),
                 SizedBox(width: 30),
+                // Button to capture image using camera
                 IconButton(
                   icon: Icon(Icons.camera_alt, size: 40),
                   onPressed: () => _pickImage(ImageSource.camera),
@@ -285,27 +164,6 @@ class _ImagePickerScreenState extends State<ImagePickerScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class LoadingScreen extends StatelessWidget {
-  final String imageUrl;
-  const LoadingScreen({super.key, required this.imageUrl});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.network(imageUrl), // Display uploaded image
-            CircularProgressIndicator(),
-            Text("Uploading..."),
-          ],
-        ),
       ),
     );
   }
